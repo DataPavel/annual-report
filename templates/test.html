@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<h1>Hi! This is a new project</h1>
+<br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+<form method='POST' action='data'>
+  {{  form.hidden_tag() }}
+
+  {{ form.upload.label(class="form-label") }}
+  {{ form.upload(class="form-control ") }}
+  <br/>
+  {{ form.submit(class="btn btn-secondary") }}
+</form>
+</div>
+
+
+{% endblock %}
