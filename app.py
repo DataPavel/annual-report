@@ -29,7 +29,7 @@ client = boto3.client(
     region_name = os.getenv('region_name')
 )
 bucket = os.getenv('bucket')
-class UploadFileForm(FlaskForm):
+class UploadFile(FlaskForm):
     upload = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
 
@@ -41,7 +41,7 @@ columns = ['Date', 'Company', 'Studio', 'Project', 'Category', 'Country',
        'Country_code', 'OS', 'Counterparty', 'Amount_USD']
 @app.route('/', methods=['GET',"POST"])
 def upload():
-    form = UploadFileForm()
+    form = UploadFile()
     if form.validate_on_submit():
         # Save file to the upload folder
         file = form.upload.data
