@@ -5,12 +5,21 @@
 
 <h1>Hi! This is a new project</h1>
 <br/>
+{% for message in get_flashed_messages() %}
+
+<div class="alert alert-primary alert-dismissible fade show" role="alert">
+
+    {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+{% endfor %}
 <div class="shadow p-3 mb-5 bg-body rounded">
-<form method='POST' action='data'>
+<form method='POST' enctype=multipart/form-data>
   {{  form.hidden_tag() }}
 
   {{ form.upload.label(class="form-label") }}
-  {{ form.upload(class="form-control ") }}
+  {{ form.upload(class="form-control") }}
   <br/>
   {{ form.submit(class="btn btn-secondary") }}
 </form>

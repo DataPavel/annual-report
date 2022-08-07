@@ -1,41 +1,70 @@
-from flask import Flask, render_template, flash, request, redirect, url_for, jsonify
+from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField
+from werkzeug.utils import secure_filename
+import os
+from wtforms.validators import InputRequired
 
 import pandas as pd
-import csv
+import boto3
 
+from dotenv import load_dotenv
 
+def configure():
+    load_dotenv()
 
+configure()
 
-# Create a Flask Instance
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'supersecretkey'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+ALLOWED_EXTENSIONS = ['csv', 'xlsx', 'xls']
+
+# Create the low level functional client
+
+client = boto3.client(
+    's3',
+    aws_access_key_id = os.getenv('aws_access_key_id'), 
+    aws_secret_access_key = os.getenv('aws_secret_access_key'),
+    region_name = os.getenv('region_name')
+)
+bucket = os.getenv('bucket')
+class UploadFileForm(FlaskForm):
+    upload = FileField("File", validators=[InputRequired()])
+    submit = SubmitField("Upload File")
 
 
-
-# Create a Sectet Key
-app.config['SECRET_KEY'] = 'KEY'
-
-# Create a Upload Form
-class UploadForm(FlaskForm):
-	upload = FileField('Upload')
-	submit = SubmitField('Submit')
-
-
-
-@app.route('/', methods=['GET', 'POST'])
-def test():
-	form = UploadForm()
-	return render_template('test.html', form=form)
-
-@app.route('/data', methods=['GET', 'POST'])
-def data():
-	if request.method == 'POST':
-		file = request.form['upload']
-#		df = list()
-#		with open(file) as file:
-#			csvfile = csv.reader(file)
-#			for row in csvfile:
-#				df.append(row)
-		df = pd.read_csv(file)
-		return render_template('data.html', df=df)
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+columns = ['Date', 'Company', 'Studio', 'Project', 'Category', 'Country',
+       'Country_code', 'OS', 'Counterparty', 'Amount_USD']
+@app.route('/', methods=['GET',"POST"])
+def upload():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        # Save file to the upload folder
+        file = form.upload.data
+        if allowed_file(file.filename):
+            file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                app.config['UPLOAD_FOLDER'],
+                secure_filename(file.filename))
+            file.save(file_path)
+            if (len(pd.read_csv(file_path).columns) == len(columns))\
+            and (pd.read_csv(file_path).columns == columns).mean():
+                #Upload file to S3
+                client.upload_file(file_path, bucket, file.filename)
+                # Delete file from upload folder
+                os.remove(file_path)
+                flash('The file has been uploaded')
+                return render_template('test.html', form=form)
+            else:
+                # Delete file from upload folder
+                os.remove(file_path)
+                flash('Please check column names')
+                return render_template('test.html', form=form)
+            
+        else:
+            flash('make sure you upload csv or xlsx or txt format')
+            return render_template('test.html', form=form)
+    return render_template('test.html', form=form)
