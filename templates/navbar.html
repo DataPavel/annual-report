@@ -6,8 +6,16 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">      
-        <li class="nav-item">
-          <a class="nav-link" href="#">Balances</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Metrics
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="#">Profit</a></li>
+            <li><a class="dropdown-item" href="#">Revenue</a></li>
+            <li><a class="dropdown-item" href="#">Marketing</a></li>
+            <li><a class="dropdown-item" href="#">Development</a></li>
+          </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('upload') }}">Upload files</a>
