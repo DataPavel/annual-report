@@ -39,7 +39,12 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 columns = ['Date', 'Company', 'Studio', 'Project', 'Category', 'Country',
        'Country_code', 'OS', 'Counterparty', 'Amount_USD']
-@app.route('/', methods=['GET',"POST"])
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload/', methods=['GET',"POST"])
 def upload():
     form = UploadFile()
     if form.validate_on_submit():
@@ -57,14 +62,14 @@ def upload():
                 # Delete file from upload folder
                 os.remove(file_path)
                 flash('The file has been uploaded')
-                return render_template('test.html', form=form)
+                return render_template('upload.html', form=form)
             else:
                 # Delete file from upload folder
                 os.remove(file_path)
-                flash('Please check column names')
-                return render_template('test.html', form=form)
+                flash('Please check the column names')
+                return render_template('upload.html', form=form)
             
         else:
-            flash('make sure you upload csv or xlsx or txt format')
-            return render_template('test.html', form=form)
-    return render_template('test.html', form=form)
+            flash('Make sure you upload file in csv or xlsx format')
+            return render_template('upload.html', form=form)
+    return render_template('upload.html', form=form)
