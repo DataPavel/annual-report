@@ -16,7 +16,7 @@
 	{{ form.end_date(class="form-control") }}
 	</div>
 	<div class="col-auto">
-	{{ form.company_name(class="selectpicker", placeholder='Company Name') }}
+	{{ form.company_name(class='selectpicker', placeholder='Company Name', onChange='getSelectedOptions(this)') }}
 	</div>
 	<div class="col-auto">
 	{{ form.studio_name(class="selectpicker", placeholder='Studio') }}
@@ -35,5 +35,28 @@
 </div>
 
 <br/>
+<script>
+
+function getSelectedOptions(sel) {
+  var opts = [],
+    opt;
+  var len = sel.options.length;
+  for (var i = 0; i < len; i++) {
+    opt = sel.options[i];
+
+    if (opt.selected) {
+      opts.push(opt);
+      alert(opt.value);
+    }
+  }
+
+  return opts;
+}
+
+
+
+</script>
 
 {% endblock %}
+
+
