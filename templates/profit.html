@@ -42,10 +42,19 @@
 			Plotly.plot('profit_by_month_bar', graphs, {});
 		</script>
 </div>
+<script>
+document.getElementById('company_name').onchange = function() {
+    var selected = [];
+    for (var option of document.getElementById('company_name').options)
+    {
+        if (option.selected) {
+            selected.push(option.value);
+        }
+    }
+    console.table(selected);
+}
 
-
-
-
+</script>
 
 
 
