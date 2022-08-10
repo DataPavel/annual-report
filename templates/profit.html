@@ -36,12 +36,31 @@
 
 <br/>
   <div class='row'>
-	<div id='profit_by_month_bar'></div>
+	<div id='profit_by_month_bar' style='height: 40vh'></div>
 		<script>
 			var graphs = {{ graph|safe }};
 			Plotly.plot('profit_by_month_bar', graphs, {});
 		</script>
 </div>
+  <div class='row'>
+  	<div class="col-6">
+	<div id='cumsum' style='height: 35vh'></div>
+		<script>
+			var graphs2 = {{ graph2|safe }};
+			Plotly.plot('cumsum', graphs2, {});
+		</script>
+	</div>
+
+  <div class="col-6">
+	<div id='bar_project' style='height: 35vh'></div>
+		<script>
+			var graphs3 = {{ graph3|safe }};
+			Plotly.plot('bar_project', graphs3, {});
+		</script>
+	</div>
+</div>
+
+<!-----TODO----
 <script>
 document.getElementById('company_name').onchange = function() {
     var selected = [];
@@ -55,7 +74,7 @@ document.getElementById('company_name').onchange = function() {
 }
 
 </script>
-
+--------->
 
 
 

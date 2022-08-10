@@ -9,6 +9,7 @@ import plotly
 import json
 
 import pandas as pd
+import numpy as np
 
 import utils
 import plots
@@ -68,7 +69,12 @@ class FilterForm(FlaskForm):
         validate_choice=False)
     submit = SubmitField('Submit')
 
-
+df = utils.read_file_s3().groupby('Date').sum()['Amount_USD'].reset_index()
+df['color'] = np.where(df['Amount_USD']<0, '#F43B76', '#36CE53')
+df['RT'] = df['Amount_USD'].cumsum()
+df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
+df_project = utils.read_file_s3().groupby('Project').sum()['Amount_USD'].reset_index()
+df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
 
 @app.route('/profit/')
 def profit():
@@ -77,11 +83,15 @@ def profit():
     form.studio_name.choices=['All']+ utils.unique_value('Studio')
     form.product_name.choices=['All']+ utils.unique_value('Project')
 
-    fig = plots.profit_by_month_bar(utils.read_file_s3().groupby('Date').sum()['Amount_USD'].reset_index())
+    fig = plots.profit_by_month_bar(df)
     graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('profit.html', form=form, graph=graph)
 
-
+    fig2 = plots.cumline(df)
+    graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+    fig3 = plots.bar_project(df_project)
+    graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+    
+    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3)
 
 
 
