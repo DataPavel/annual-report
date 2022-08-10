@@ -5,9 +5,13 @@ from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired, DataRequired
 
+import plotly
+import json
+
 import pandas as pd
 
 import utils
+import plots
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
@@ -54,14 +58,14 @@ def upload():
 
 class FilterForm(FlaskForm):
 
-    start_date = DateField('Start Date', validators=[DataRequired()])
-    end_date = DateField('End Date', validators=[DataRequired()])
+    start_date = DateField('Start Date')
+    end_date = DateField('End Date')
     company_name = SelectMultipleField('Company Name',
-        validate_choice=False, validators=[DataRequired()])
+        validate_choice=False)
     studio_name = SelectMultipleField('Studio', choices=[],
-        validate_choice=False, validators=[DataRequired()])
+        validate_choice=False)
     product_name = SelectMultipleField('Product', choices=[],
-        validate_choice=False, validators=[DataRequired()])
+        validate_choice=False)
     submit = SubmitField('Submit')
 
 
@@ -72,7 +76,20 @@ def profit():
     form.company_name.choices=['All'] + utils.unique_value('Company')
     form.studio_name.choices=['All']+ utils.unique_value('Studio')
     form.product_name.choices=['All']+ utils.unique_value('Project')
-    return render_template('filter.html', form=form)
+
+    fig = plots.profit_by_month_bar(utils.read_file_s3().groupby('Date').sum()['Amount_USD'].reset_index())
+    graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('profit.html', form=form, graph=graph)
+
+
+
+
+
+
+
+
+
+
 
 
 ### TODO
