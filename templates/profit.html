@@ -36,15 +36,17 @@
 
 <br/>
   <div class='row'>
-	<div id='profit_by_month_bar' style='height: 40vh'></div>
+  	<div class='col-6'>
+	<div id='profit_by_month_bar' style='height: 30vh'></div>
 		<script>
 			var graphs = {{ graph|safe }};
 			Plotly.plot('profit_by_month_bar', graphs, {});
 		</script>
+	</div>
 </div>
   <div class='row'>
   	<div class="col-6">
-	<div id='cumsum' style='height: 35vh'></div>
+	<div id='cumsum' style='height: 20vh'></div>
 		<script>
 			var graphs2 = {{ graph2|safe }};
 			Plotly.plot('cumsum', graphs2, {});
@@ -52,13 +54,33 @@
 	</div>
 
   <div class="col-6">
-	<div id='bar_project' style='height: 35vh'></div>
+	<div id='bar_project' style='height: 20vh'></div>
 		<script>
 			var graphs3 = {{ graph3|safe }};
 			Plotly.plot('bar_project', graphs3, {});
 		</script>
 	</div>
 </div>
+<table class="table table-hover table-bordered table-striped">
+	<thead class="table-success">
+  	<tr>
+	<td align="center"><h6>Date</h6></td>
+	<td align="center"><h6>Product</h6></td>
+	<td align="center"><h6>Amount, USD</h6></td> 
+	</tr>
+	</thead>
+
+
+{% for i, row in df.iterrows() %}
+<tr> 
+    <td>{{ row.Date|safe }}</td>
+    <td>{{ row.Project|safe }}</td>
+    <td align="right">{{ row.Amount_USD|safe|FormatDecimal }}</td>
+</tr>
+{% endfor %} 
+
+
+</table>
 
 <!-----TODO----
 <script>

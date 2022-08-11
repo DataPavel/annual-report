@@ -4,6 +4,9 @@ from wtforms import FileField, SubmitField, DateField, SelectMultipleField
 from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired, DataRequired
+from babel.numbers import format_decimal
+
+import jinja2
 
 import plotly
 import json
@@ -13,6 +16,17 @@ import numpy as np
 
 import utils
 import plots
+
+
+# Decimal format for Jinja2
+def FormatDecimal(value):
+    return format_decimal(float(value), format='#,##0')
+
+jinja2.filters.FILTERS['FormatDecimal'] = FormatDecimal
+
+
+
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
@@ -76,13 +90,13 @@ df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
 df_project = utils.read_file_s3().groupby('Project').sum()['Amount_USD'].reset_index()
 df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
 
+
 @app.route('/profit/')
 def profit():
     form = FilterForm()
     form.company_name.choices=['All'] + utils.unique_value('Company')
     form.studio_name.choices=['All']+ utils.unique_value('Studio')
     form.product_name.choices=['All']+ utils.unique_value('Project')
-
     fig = plots.profit_by_month_bar(df)
     graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -90,8 +104,10 @@ def profit():
     graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
     fig3 = plots.bar_project(df_project)
     graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+    df_table = utils.read_file_s3().groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
     
-    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3)
+    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3,
+        df=df_table)
 
 
 
