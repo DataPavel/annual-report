@@ -16,6 +16,7 @@ import numpy as np
 
 import utils
 import plots
+import predictions
 
 
 # Decimal format for Jinja2
@@ -89,6 +90,8 @@ df['RT'] = df['Amount_USD'].cumsum()
 df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
 df_project = utils.read_file_s3().groupby('Project').sum()['Amount_USD'].reset_index()
 df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
+######for predictions#######
+df_preds = predictions.display_all_predictions(utils.read_file_s3())
 
 
 @app.route('/profit/')
@@ -104,9 +107,14 @@ def profit():
     graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
     fig3 = plots.bar_project(df_project)
     graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+    fig4 = plots.predictions(df_preds)
+    graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+
+
     df_table = utils.read_file_s3().groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
+
     
-    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3,
+    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4,
         df=df_table)
 
 

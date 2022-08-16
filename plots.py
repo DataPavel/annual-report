@@ -108,3 +108,34 @@ def bar_project(df):
                     plot_bgcolor='#F3FEFE'
                     )
     return fig
+
+
+def predictions(df):
+    fig = px.area(df, x = df.index, y = 'Amount_USD',
+            text = 'Amount_USD',
+            markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = fig.update_traces(
+                            texttemplate='%{text:.2s}',
+                            textposition = 'top center',
+                            textfont_size = 10,
+                            #marker_color=df['color_RT'],
+                            )
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            xaxis_range= [-0.1, df['Date'].count() - 0.9],
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "One year prediction, USD",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE',
+                            paper_bgcolor= '#ECF0F1'
+                            )
+    return fig

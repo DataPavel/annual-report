@@ -43,6 +43,13 @@
 			Plotly.plot('profit_by_month_bar', graphs, {});
 		</script>
 	</div>
+	<div class='col-6'>
+	<div id='predictions' style='height: 30vh'></div>
+		<script>
+			var graphs = {{ graph4|safe }};
+			Plotly.plot('predictions', graphs, {});
+		</script>
+	</div>
 </div>
   <div class='row'>
   	<div class="col-6">
