@@ -21,6 +21,7 @@ client = boto3.client(
     region_name = os.getenv('region_name')
 )
 bucket = os.getenv('bucket')
+bucket2 = os.getenv('bucket2')
 
 
 def allowed_file(filename):
@@ -31,15 +32,15 @@ def allowed_file(filename):
 columns = ['Date', 'Company', 'Studio', 'Project', 'Category', 'Country',
        'Country_code', 'OS', 'Counterparty', 'Amount_USD']
 
-def read_file_s3():
+def read_file_s3(bucket_name):
 	keys_list = list()
-	for i in client.list_objects(Bucket=bucket)['Contents']:
+	for i in client.list_objects(Bucket=bucket_name)['Contents']:
 	    keys_list.append(i['Key'])
 	# Create the S3 object
 	obj_list = list()
 	for key in keys_list:
 	    obj = client.get_object(
-	        Bucket = bucket,
+	        Bucket = bucket_name,
 	        Key = key)
 	    obj_list.append(obj)
 	# Read data from the S3 object
@@ -53,6 +54,6 @@ def read_file_s3():
 	return df
 
 def unique_value(column_name):
-	df = read_file_s3()
+	df = read_file_s3(bucket)
 	col_value_unique = list(df[column_name].unique())
 	return col_value_unique

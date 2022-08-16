@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<h1>You can generate predictions by clicking the button</h1>
+<br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+<form method='POST'>
+  {{  form.hidden_tag() }}
+
+ 
+  {{ form.submit(class="btn btn-secondary") }}
+</form>
+</div>
+
+
+{% endblock %}

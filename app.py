@@ -3,6 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField, DateField, SelectMultipleField
 from werkzeug.utils import secure_filename
 import os
+from io import StringIO
 from wtforms.validators import InputRequired, DataRequired
 from babel.numbers import format_decimal
 
@@ -16,7 +17,7 @@ import numpy as np
 
 import utils
 import plots
-import predictions
+import preds
 
 
 # Decimal format for Jinja2
@@ -84,15 +85,13 @@ class FilterForm(FlaskForm):
         validate_choice=False)
     submit = SubmitField('Submit')
 
-df = utils.read_file_s3().groupby('Date').sum()['Amount_USD'].reset_index()
+df = utils.read_file_s3(utils.bucket).groupby('Date').sum()['Amount_USD'].reset_index()
 df['color'] = np.where(df['Amount_USD']<0, '#F43B76', '#36CE53')
 df['RT'] = df['Amount_USD'].cumsum()
 df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
-df_project = utils.read_file_s3().groupby('Project').sum()['Amount_USD'].reset_index()
+df_project = utils.read_file_s3(utils.bucket).groupby('Project').sum()['Amount_USD'].reset_index()
 df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
-######for predictions#######
-df_preds = predictions.display_all_predictions(utils.read_file_s3())
-
+df_preds = utils.read_file_s3(utils.bucket2).groupby('Date').sum()['Amount_USD'].reset_index() 
 
 @app.route('/profit/')
 def profit():
@@ -111,11 +110,30 @@ def profit():
     graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
 
 
-    df_table = utils.read_file_s3().groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
+    df_table = utils.read_file_s3(utils.bucket).groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
 
     
-    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4,
+    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+        graph4=graph4,
         df=df_table)
+
+
+class PredictionsForm(FlaskForm):
+    submit = SubmitField('Make Predictions')
+
+
+@app.route('/predictions/', methods=['GET',"POST"])
+def predictions():
+    form = PredictionsForm()
+    if form.validate_on_submit():
+        ######for predictions#######
+        df_preds = preds.display_all_predictions(utils.read_file_s3(utils.bucket)).reset_index()
+        csv_buf = StringIO()
+        df_preds.to_csv(csv_buf, header=True, index=False)
+        csv_buf.seek(0)
+        utils.client.put_object(Bucket=utils.bucket2, Body=csv_buf.getvalue(), Key='preds.csv')
+        return render_template('predictions.html', form=form)
+    return render_template('predictions.html', form=form)
 
 
 

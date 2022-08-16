@@ -12,6 +12,7 @@ def list_of_dfs(df):
 
 
 def make_arima(df, project):
+    df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
     model = auto_arima(df['Amount_USD'], m=2, seasonal=True, start_p=0, start_q=0, max_order=1,
                   test='adf', error_action='ignore', suppress_warnings=True, stepwise=True, trace=False)
@@ -28,13 +29,13 @@ def make_arima(df, project):
 
 
 def display_all_predictions(df):
-	by_project = df.groupby(['Date', 'Project']).sum('Amount_USD').reset_index()
-	dfs = list_of_dfs(by_project)
-	dfs_with_preds = list()
-	for i in dfs:
-	    df_pred = make_arima(i, list(i['Project'])[0])
-	    dfs_with_preds.append(df)
-	df_pred = pd.concat(dfs_with_preds, axis=0)
-	return df_pred
+    by_project = df.groupby(['Date', 'Project']).sum('Amount_USD').reset_index()
+    dfs = list_of_dfs(by_project)
+    dfs_with_preds = list()
+    for i in dfs:
+        df_pred = make_arima(i, list(i['Project'])[0])
+        dfs_with_preds.append(df_pred)
+    df_pred = pd.concat(dfs_with_preds, axis=0)
+    return df_pred
 
 
