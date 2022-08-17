@@ -30,7 +30,7 @@ def profit_by_month_bar(df):
 	                        tickfont=dict(size=8))
 	fig = fig.update_layout(
 	                # width = 600, height = 270,
-	                paper_bgcolor= '#ECF0F1',
+	                #paper_bgcolor= '#ECF0F1',
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
@@ -69,7 +69,7 @@ def cumline(df):
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
-                            paper_bgcolor= '#ECF0F1'
+                            #paper_bgcolor= '#ECF0F1'
                             )
     return fig
 
@@ -100,7 +100,7 @@ def bar_project(df):
                             tickfont=dict(size=8))
     fig = fig.update_layout(
                     # width = 600, height = 270,
-                    paper_bgcolor= '#ECF0F1',
+                    #paper_bgcolor= '#ECF0F1',
                     template = 'simple_white',
                     margin=dict(l=20, r=20, t=25, b=20),
                     title={
@@ -140,6 +140,6 @@ def predictions(df):
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
-                            paper_bgcolor= '#ECF0F1'
+                            #paper_bgcolor= '#ECF0F1'
                             )
     return fig

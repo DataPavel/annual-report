@@ -85,20 +85,84 @@ class FilterForm(FlaskForm):
         validate_choice=False)
     submit = SubmitField('Submit')
 
-df = utils.read_file_s3(utils.bucket).groupby('Date').sum()['Amount_USD'].reset_index()
-df['color'] = np.where(df['Amount_USD']<0, '#F43B76', '#36CE53')
-df['RT'] = df['Amount_USD'].cumsum()
-df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
-df_project = utils.read_file_s3(utils.bucket).groupby('Project').sum()['Amount_USD'].reset_index()
-df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
+df_all = utils.read_file_s3(utils.bucket)
+#df_all = df_all.groupby('Date').sum()['Amount_USD'].reset_index()
+#df_all['color'] = np.where(df_all['Amount_USD']<0, '#F43B76', '#36CE53')
+#df_all['RT'] = df_all['Amount_USD'].cumsum()
+#df_all['color_RT'] = np.where(df_all['RT']<0, '#F43B76', '#36CE53')
+#df_project = utils.read_file_s3(utils.bucket).groupby('Project').sum()['Amount_USD'].reset_index()
+#df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
 df_preds = utils.read_file_s3(utils.bucket2).groupby('Date').sum()['Amount_USD'].reset_index() 
 
-@app.route('/profit/')
+
+
+
+
+
+
+
+###########################Profit Page###############################################################
+
+
+
+
+@app.route('/profit/', methods=['GET',"POST"])
 def profit():
     form = FilterForm()
     form.company_name.choices=['All'] + utils.unique_value('Company')
     form.studio_name.choices=['All']+ utils.unique_value('Studio')
     form.product_name.choices=['All']+ utils.unique_value('Project')
+    if form.validate_on_submit():
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        company_name = form.company_name.data
+        studio_name = form.studio_name.data
+        product_name = form.product_name.data
+        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+            df_all['Date'] = pd.to_datetime(df_all['Date'])
+            df_filter = df_all[(df_all['Date']>="'"+str(start_date)+"'")&(df_all['Date']<="'"+str(end_date)+"'")]
+            df = df_filter.groupby('Date').sum()['Amount_USD'].reset_index()
+            df['color'] = np.where(df['Amount_USD']<0, '#F43B76', '#36CE53')
+            df['RT'] = df['Amount_USD'].cumsum()
+            df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
+            df_project = df_filter.groupby('Project').sum()['Amount_USD'].reset_index()
+            df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
+            df_table = df_filter.groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
+            fig = plots.profit_by_month_bar(df)
+            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+            fig2 = plots.cumline(df)
+            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+            fig3 = plots.bar_project(df_project)
+            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+            fig4 = plots.predictions(df_preds)
+            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                    graph4=graph4,
+                            df=df_table)
+
+
+
+
+        #return render_template('test.html', start_date=start_date,
+                #end_date=end_date, company_name=company_name, studio_name=studio_name,
+                #product_name=product_name)
+        #if company_name[0] != 'All' and studio_name == 'All' and product == 'All':
+        #if company_name[0] == 'All' and studio_name != 'All' and product == 'All':
+        #if company_name[0] == 'All' and studio_name == 'All' and product != 'All':
+        #if company_name[0] != 'All' and studio_name != 'All' and product == 'All':
+        #if company_name[0] != 'All' and studio_name == 'All' and product != 'All':
+        #if company_name[0] == 'All' and studio_name != 'All' and product != 'All':
+        #if company_name[0] != 'All' and studio_name != 'All' and product != 'All':
+
+
+    df = df_all.groupby('Date').sum()['Amount_USD'].reset_index()
+    df['color'] = np.where(df['Amount_USD']<0, '#F43B76', '#36CE53')
+    df['RT'] = df['Amount_USD'].cumsum()
+    df['color_RT'] = np.where(df['RT']<0, '#F43B76', '#36CE53')
+    df_project = df_all.groupby('Project').sum()['Amount_USD'].reset_index()
+    df_project['color'] = np.where(df_project['Amount_USD']<0, '#F43B76', '#36CE53')
+    df_table = df_all.groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
     fig = plots.profit_by_month_bar(df)
     graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -109,13 +173,29 @@ def profit():
     fig4 = plots.predictions(df_preds)
     graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
 
-
-    df_table = utils.read_file_s3(utils.bucket).groupby(['Date', 'Project']).sum()['Amount_USD'].reset_index()
-
     
     return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
         graph4=graph4,
         df=df_table)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class PredictionsForm(FlaskForm):
