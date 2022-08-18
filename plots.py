@@ -2,6 +2,25 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+####################### Profit Page #################################
+
+
+
+
+
 def profit_by_month_bar(df):
 	fig = go.Figure()
 	fig = fig.add_trace(
@@ -145,7 +164,39 @@ def predictions(df):
     return fig
 
 
-#########################################Revenue Page#####################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################## Revenue Page #####################################
+
+
+
+
+
+
 
 def revenue_by_month_plot(df):
 
@@ -164,13 +215,14 @@ def revenue_by_month_plot(df):
 
 	)
 	fig = fig.update_xaxes(title = None,
-	                        tickfont=dict(size=8))
+	                        tickfont=dict(size=8), 
+	                        type='category')
 	fig = fig.update_yaxes(title = None,
 	                        showgrid=True,
 	                        tickfont=dict(size=8))
 	fig = fig.update_layout(
 	                # width = 600, height = 270,
-	                paper_bgcolor= '#ECF0F1',
+	                #paper_bgcolor= '#ECF0F1',
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
@@ -212,7 +264,7 @@ def revenue_by_country_plot(df):
 	                        tickfont=dict(size=8))
 	fig = fig.update_layout(
 	                # width = 600, height = 270,
-	                paper_bgcolor= '#ECF0F1',
+	                #paper_bgcolor= '#ECF0F1',
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
@@ -244,7 +296,7 @@ def pie_cat_rev(df):
 	                        tickfont=dict(size=8))
 	fig = fig.update_layout(
 	                # width = 400, height = 270,
-	                paper_bgcolor= '#ECF0F1',
+	                #paper_bgcolor= '#ECF0F1',
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
@@ -277,7 +329,7 @@ def pie_partner_rev(df):
 	                        tickfont=dict(size=8))
 	fig = fig.update_layout(
 	                # width = 400, height = 270,
-	                paper_bgcolor= '#ECF0F1',
+	                #paper_bgcolor= '#ECF0F1',
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
@@ -295,5 +347,148 @@ def pie_partner_rev(df):
 	                )
 
 	return fig
+
+
+
+
+
+
+
+
+
+
+
+################## Marketing Plots ##########################
+
+
+
+
+
+def marketing_by_month_plot(df):
+
+	fig = px.bar(df, x = 'Date_str',
+	y = 'amount_abs',
+	text = 'amount_abs')
+
+	fig = fig.update_traces(
+	                    texttemplate='%{text:.2s}',
+	                    textfont_size = 10,
+	                    textangle=0,
+	                    textposition="inside",
+	                    marker_line_color='#1D475F',
+	                    marker_line_width=1
+
+								)
+	fig = fig.update_xaxes(title = None,
+	                        tickfont=dict(size=8))
+	fig = fig.update_yaxes(title = None,
+	                        showgrid=True,
+	                        tickfont=dict(size=8))
+	fig = fig.update_layout(
+	                # width = 600, height = 270,
+	                #paper_bgcolor= '#ECF0F1',
+	                template = 'simple_white',
+	                margin=dict(l=20, r=20, t=25, b=20),
+	                title={
+	                       'text': "Marketing by Month, USD",
+	                       'x':0.5
+	                             },
+	                legend = dict(
+	                    orientation = 'h',
+	                    y = -0.15,
+
+	                 font=dict(
+	                    size=12,
+	                            )),
+	                plot_bgcolor='#F3FEFE'
+	                )
+
+	return fig
+
+
+
+def marketing_by_country_plot(df):
+
+	fig = px.bar(df, x = 'amount_abs',
+	    y = 'Country',
+	    text = 'amount_abs', 
+	    orientation='h')
+
+	fig = fig.update_traces(
+	                    texttemplate='%{text:.2s}',
+	                    textfont_size = 10,
+	                    textangle=0,
+	                    textposition="inside",
+	                    marker_line_color='#1D475F',
+	                    marker_line_width=1
+
+								)
+	fig = fig.update_xaxes(title = None,
+	                        tickfont=dict(size=8))
+	fig = fig.update_yaxes(title = None,
+	                        showgrid=True,
+	                        tickfont=dict(size=8))
+	fig = fig.update_layout(
+	                # width = 600, height = 270,
+	                #paper_bgcolor= '#ECF0F1',
+	                template = 'simple_white',
+	                margin=dict(l=20, r=20, t=25, b=20),
+	                title={
+	                       'text': "Marketing by Country, USD",
+	                       'x':0.5
+	                             },
+	                legend = dict(
+	                    orientation = 'h',
+	                    y = -0.15,
+
+	                 font=dict(
+	                    size=12,
+	                            )),
+	                plot_bgcolor='#F3FEFE'
+	                )
+
+	return fig
+
+
+def pie_partner_marketing(df):
+
+	fig = px.pie(df, values='amount_abs',
+	names='Counterparty', hole = 0.5
+	                        )
+
+	fig = fig.update_xaxes(title = None,
+	                        tickfont=dict(size=8))
+	fig = fig.update_yaxes(title = None,
+	                        showgrid=True,
+	                        tickfont=dict(size=8))
+	fig = fig.update_layout(
+	                # width = 400, height = 270,
+	                #paper_bgcolor= '#ECF0F1',
+	                template = 'simple_white',
+	                margin=dict(l=20, r=20, t=25, b=20),
+	                title={
+	                       'text': "Revenue by Counterparty",
+	                       'x':0.5
+	                             },
+	                legend = dict(
+	                    # orientation = 'h',
+	                    # y = -0.15,
+
+	                 font=dict(
+	                    size=10,
+	                            )),
+	                plot_bgcolor='#F3FEFE'
+	                )
+
+	return fig
+
+
+
+
+
+
+
+
+
 
 

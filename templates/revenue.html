@@ -47,32 +47,32 @@
 	<div id='revenue_by_country' style='height: 30vh'></div>
 		<script>
 			var graphs2 = {{ graph2|safe }};
-			Plotly.plot('revenue_by_country', graphs, {});
+			Plotly.plot('revenue_by_country', graphs2, {});
 		</script>
 	</div>
 </div>
   <div class='row'>
   	<div class="col-4">
-	<div id='revenue_category' style='height: 20vh'></div>
+	<div id='revenue_category' style='height: 30vh'></div>
 		<script>
 			var graphs3 = {{ graph3|safe }};
-			Plotly.plot('revenue_category', graphs2, {});
+			Plotly.plot('revenue_category', graphs3, {});
 		</script>
 	</div>
 
   <div class="col-4">
-	<div id='category_partner' style='height: 20vh'></div>
+	<div id='category_partner' style='height: 30vh'></div>
 		<script>
 			var graphs4 = {{ graph4|safe }};
-			Plotly.plot('bar_project', graphs3, {});
+			Plotly.plot('category_partner', graphs4, {});
 		</script>
 	</div>
-</div>
+
   <div class="col-4">
-	<div id='category_partner' style='height: 20vh'></div>
+	<div id='category_partner2' style='height: 30vh'></div>
 		<script>
 			var graphs5 = {{ graph5|safe }};
-			Plotly.plot('bar_project', graphs3, {});
+			Plotly.plot('category_partner2', graphs5, {});
 		</script>
 	</div>
 </div>
@@ -87,7 +87,7 @@
 
 {% for i, row in df.iterrows() %}
 <tr>
-    <td>{{ row.Project|safe }}</td>
+    <td>{{ row.Category|safe }}</td>
     <td align="right">{{ row.Amount_USD|safe|FormatDecimal }}</td>
 </tr>
 {% endfor %} 
