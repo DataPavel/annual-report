@@ -37,33 +37,41 @@
 <br/>
   <div class='row'>
   	<div class='col-6'>
-	<div id='profit_by_month_bar' style='height: 30vh'></div>
+	<div id='revenue_by_month_bar' style='height: 30vh'></div>
 		<script>
 			var graphs = {{ graph|safe }};
-			Plotly.plot('profit_by_month_bar', graphs, {});
+			Plotly.plot('revenue_by_month_bar', graphs, {});
 		</script>
 	</div>
 	<div class='col-6'>
-	<div id='predictions' style='height: 30vh'></div>
+	<div id='revenue_by_country' style='height: 30vh'></div>
 		<script>
-			var graphs = {{ graph4|safe }};
-			Plotly.plot('predictions', graphs, {});
+			var graphs2 = {{ graph2|safe }};
+			Plotly.plot('revenue_by_country', graphs, {});
 		</script>
 	</div>
 </div>
   <div class='row'>
-  	<div class="col-6">
-	<div id='cumsum' style='height: 20vh'></div>
+  	<div class="col-4">
+	<div id='revenue_category' style='height: 20vh'></div>
 		<script>
-			var graphs2 = {{ graph2|safe }};
-			Plotly.plot('cumsum', graphs2, {});
+			var graphs3 = {{ graph3|safe }};
+			Plotly.plot('revenue_category', graphs2, {});
 		</script>
 	</div>
 
-  <div class="col-6">
-	<div id='bar_project' style='height: 20vh'></div>
+  <div class="col-4">
+	<div id='category_partner' style='height: 20vh'></div>
 		<script>
-			var graphs3 = {{ graph3|safe }};
+			var graphs4 = {{ graph4|safe }};
+			Plotly.plot('bar_project', graphs3, {});
+		</script>
+	</div>
+</div>
+  <div class="col-4">
+	<div id='category_partner' style='height: 20vh'></div>
+		<script>
+			var graphs5 = {{ graph5|safe }};
 			Plotly.plot('bar_project', graphs3, {});
 		</script>
 	</div>
@@ -71,7 +79,7 @@
 <table class="table table-hover table-bordered table-striped">
 	<thead class="table-success">
   	<tr>
-	<td align="center"><h6>Product</h6></td>
+	<td align="center"><h6>Category</h6></td>
 	<td align="center"><h6>Amount, USD</h6></td> 
 	</tr>
 	</thead>
