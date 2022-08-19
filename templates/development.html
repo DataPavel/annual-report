@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h4>Filters</h4>
+
+<div class="shadow p-3 mb-5 bg-body rounded">
+<form method='POST'>
+	{{  form.hidden_tag() }}
+<div class="row g-3 align-items-center">
+
+	<div class="col-auto">
+	{{ form.start_date(class="form-control") }}
+	</div>
+	<div class="col-auto">
+	{{ form.end_date(class="form-control") }}
+	</div>
+	<div class="col-auto">
+	{{ form.company_name(class='selectpicker', placeholder='Company Name') }}
+	</div>
+	<div class="col-auto">
+	{{ form.studio_name(class="selectpicker", placeholder='Studio') }}
+	</div>
+	<div class="col-auto">
+	{{ form.product_name(class="selectpicker", placeholder='Product') }}
+	</div>
+	<div class="col-auto">
+	{{ form.submit(class="btn btn-secondary") }}
+</div>
+<div class="col-auto">
+<button type="button" class="btn btn-secondary " id="export_button">Download</button>
+</div>
+</div>
+</form>
+</div>
+
+<br/>
+  <div class='row'>
+  	<div class='col-6'>
+	<div id='dev_by_month_bar' style='height: 30vh'></div>
+		<script>
+			var graphs = {{ graph|safe }};
+			Plotly.plot('dev_by_month_bar', graphs, {});
+		</script>
+	</div>
+	<div class='col-6'>
+	<div id='dev_by_country' style='height: 30vh'></div>
+		<script>
+			var graphs2 = {{ graph2|safe }};
+			Plotly.plot('dev_by_country', graphs2, {});
+		</script>
+	</div>
+</div>
+ <div class='row'>
+  	
+  	<div class="col-4 offset-1">
+		<div id='dev_category' style='height: 30vh'></div>
+		<script>
+			var graphs3 = {{ graph3|safe }};
+			Plotly.plot('dev_category', graphs3, {});
+		</script>
+	</div>
+	<div class="col-4 offset-2">
+	<div id='dev_partner' style='height: 30vh'></div>
+		<script>
+			var graphs4 = {{ graph4|safe }};
+			Plotly.plot('dev_partner', graphs4, {});
+		</script>
+	</div>
+
+  
+</div>
+<table class="table table-hover table-bordered table-striped">
+	<thead class="table-success">
+  	<tr>
+	<td align="center"><h6>Team</h6></td>
+	<td align="center"><h6>Amount, USD</h6></td> 
+	</tr>
+	</thead>
+
+
+{% for i, row in df.iterrows() %}
+<tr>
+    <td>{{ row.Counterparty|safe }}</td>
+    <td align="right">{{ row.amount_abs|safe|FormatDecimal }}</td>
+</tr>
+{% endfor %} 
+
+
+</table>
+
+<!-----TODO----
+<script>
+document.getElementById('company_name').onchange = function() {
+    var selected = [];
+    for (var option of document.getElementById('company_name').options)
+    {
+        if (option.selected) {
+            selected.push(option.value);
+        }
+    }
+    console.table(selected);
+}
+
+</script>
+--------->
+
+
+
+{% endblock %}
+
+

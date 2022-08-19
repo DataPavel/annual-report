@@ -250,6 +250,88 @@ def df_table_marketing(start_date, end_date, company_name=utils.unique_value('Co
 
 
 
+############## Development Page #######################
+
+df_all_dev = utils.read_file_s3(utils.bucket)
+df_all_dev = df_all_dev[df_all_dev['Category'].isin(['Salaries', 'Licensing'])]
+df_all_dev['Date'] = pd.to_datetime(df_all_dev['Date'])
+df_all_dev['Date_str'] = df_all_dev['Date'].apply(lambda x: x.strftime("%Y-%m"))
+df_all_dev['amount_abs'] = df_all_dev['Amount_USD'].apply(lambda x: x*-1)
+
+###No Filters
+def df_dev_month_nf():
+	df = df_all_dev.groupby(['Date', 'Date_str', 'Category']).sum()['amount_abs'].reset_index()
+	return df
+
+def df_dev_country_nf():
+	df_country = df_all_dev.groupby('Country').sum()['amount_abs'].reset_index().sort_values('amount_abs')
+	return df_country
+
+def df_dev_category_nf():
+	df_category = df_all_dev.groupby('Category').sum()['amount_abs'].reset_index()
+	return df_category
+
+def df_dev_partner_nf():
+	df_partner = df_all_dev.groupby('Counterparty').sum()['amount_abs'].reset_index()
+	return df_partner
+
+def df_table_dev_nf():
+	df_table = df_all_dev.groupby(['Counterparty']).sum()['amount_abs'].reset_index().sort_values(by=['amount_abs'])
+	return df_table
+
+
+###With filters
+
+def df_dev_month(start_date, end_date, company_name=utils.unique_value('Company'),\
+ 	studio_name=utils.unique_value('Studio'), product_name=utils.unique_value('Project')):
+	df_filtered = df_all_dev[(df_all_dev['Date']>=start_date)&(df_all_dev['Date']<=end_date)\
+	&(df_all_dev['Company'].isin(company_name))&(df_all_dev['Studio'].isin(studio_name))\
+	&(df_all_dev['Project'].isin(product_name))]
+
+	df = df_filtered.groupby(['Date', 'Date_str', 'Category']).sum()['amount_abs'].reset_index()
+	return df
+
+def df_dev_country(start_date, end_date, company_name=utils.unique_value('Company'),\
+	studio_name=utils.unique_value('Studio'), product_name=utils.unique_value('Project')):
+	df_filtered = df_all_dev[(df_all_dev['Date']>=start_date)&(df_all_dev['Date']<=end_date)\
+	&(df_all_dev['Company'].isin(company_name))&(df_all_dev['Studio'].isin(studio_name))\
+	&(df_all_dev['Project'].isin(product_name))]
+	df_country = df_filtered.groupby('Country').sum()['amount_abs'].reset_index()
+	return df_country
+
+def df_dev_category(start_date, end_date, company_name=utils.unique_value('Company'),\
+ 	studio_name=utils.unique_value('Studio'), product_name=utils.unique_value('Project')):
+
+	df_filtered = df_all_dev[(df_all_dev['Date']>=start_date)&(df_all_dev['Date']<=end_date)\
+	&(df_all_dev['Company'].isin(company_name))&(df_all_dev['Studio'].isin(studio_name))\
+	&(df_all_dev['Project'].isin(product_name))]
+
+	df_category = df_filtered.groupby('Category').sum()['amount_abs'].reset_index()
+	return df_category
+
+def df_dev_partner(start_date, end_date, company_name=utils.unique_value('Company'),\
+ 	studio_name=utils.unique_value('Studio'), product_name=utils.unique_value('Project')):
+
+	df_filtered = df_all_dev[(df_all_dev['Date']>=start_date)&(df_all_dev['Date']<=end_date)\
+	&(df_all_dev['Company'].isin(company_name))&(df_all_dev['Studio'].isin(studio_name))\
+	&(df_all_dev['Project'].isin(product_name))]
+
+	df_partner = df_filtered.groupby('Counterparty').sum()['amount_abs'].reset_index()
+	return df_partner
+
+def df_table_dev(start_date, end_date, company_name=utils.unique_value('Company'),\
+ 	studio_name=utils.unique_value('Studio'), product_name=utils.unique_value('Project')):
+	
+	df_filtered = df_all_dev[(df_all_dev['Date']>=start_date)&(df_all_dev['Date']<=end_date)\
+	&(df_all_dev['Company'].isin(company_name))&(df_all_dev['Studio'].isin(studio_name))\
+	&(df_all_dev['Project'].isin(product_name))]
+
+	df_table = df_filtered.groupby(['Counterparty']).sum()['amount_abs'].reset_index().sort_values(by=['amount_abs'], ascending=False)
+	return df_table
+
+
+
+
 
 
 
