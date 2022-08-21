@@ -958,15 +958,15 @@ def predictions():
 # Dynamic Select Fields
 @app.route('/studio/<company>')
 def studio(company):
-    df = utils.read_file_s3()
-    studios = list(df[df['Company']==company]['Studio'].unique())
-    studioArray = list()
+    df = utils.read_file_s3(utils.bucket)
+    studios = list(df[df['Company'].isin([company])]['Studio'].unique())
+    studioObj = {}
+    studios_list = list()
     for studio in studios:
-        studioObj = {}
-        studioObj['id'] = studio
-        studioObj['name'] = studio
-        studioArray.append(studioObj)
-    return jsonify( {'studios': studioArray})
+        studios_list.append(studio)
+        
+    studioObj['name'] = studios_list
+    return jsonify( {'studios': studioObj})
 
 
 

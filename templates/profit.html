@@ -18,7 +18,7 @@
 	<div class="col-auto">
 	{{ form.company_name(class='selectpicker', placeholder='Company Name') }}
 	</div>
-	<div class="col-auto">
+	<div class="col-auto" id="studio_drop">
 	{{ form.studio_name(class="selectpicker", placeholder='Studio') }}
 	</div>
 	<div class="col-auto">
@@ -86,23 +86,57 @@
 
 
 </table>
-
-<!-----TODO----
+<!--
 <script>
+function findFirstDescendant(parent, tagname)
+{
+   parent = document.getElementById(parent);
+   let descendants = parent.getElementsByTagName(tagname);
+	return descendants;
+   }
+
+let header = findFirstDescendant("studio_drop", "ul");
+console.log(header);
+//let studio_sel = document.getElementById('studio_drop')
+//let list = studio_sel.getElementsByTagName('ul')
+//console.log(list);
+</script>
+<script>
+let studio_select = document.getElementById('studio_name')
+
 document.getElementById('company_name').onchange = function() {
-    var selected = [];
-    for (var option of document.getElementById('company_name').options)
-    {
-        if (option.selected) {
-            selected.push(option.value);
+	let selection = [];
+	let opts = document.getElementById('company_name')
+    for (let opt of opts.options) {
+        if (opt.selected) {
+        	selection.push(opt.value);
         }
     }
-    console.table(selected);
-}
+    let optionHTML = '<option value="Studio">Studio</option>';
+    //let studio_name_list = [];
+    console.log(selection)
+    for (let sel of selection){
+    	fetch('/studio/' + sel).then(function(response){
+    		response.json().then(function(data) {
+    			for (let studio of data.studios['name']){
+    				optionHTML+= '<option value="' + studio + '">' + studio +'</option>';		
+				}
+				studio_select.innerHTML = optionHTML;
+
+
+    				//console.log(studio);
+    				//studio_name_list.push(studio)
+    			})
+
+    	})
+   	}
+    }
+
+
 
 </script>
---------->
 
+--->
 
 
 {% endblock %}
