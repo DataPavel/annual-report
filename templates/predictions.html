@@ -8,11 +8,79 @@
 <div class="shadow p-3 mb-5 bg-body rounded">
 <form method='POST'>
   {{  form.hidden_tag() }}
-
- 
-  {{ form.submit(class="btn btn-secondary") }}
+<div class="row g-3 align-items-center">
+<div class="col-auto">
+  {{ form.product_name(class="form-control", placeholder="Product") }}
+</div>
+<div class="col-auto">
+  {{ form.window_size(class="form-control", placeholder="Window Size") }}
+</div>
+<div class="col-auto">
+  {{ form.epoch(class="form-control", placeholder="Epoch") }}
+</div>
+<div class="col-auto">
+  {{ form.months_pred(class="form-control", placeholder="Months to be predicted") }}
+</div>
+<div class="col-auto">
+  {{ form.train_test(class="form-control", placeholder="Train portion") }}
+</div>
+<div class="col-auto"> 
+  {{ form.submit(class="btn btn-secondary", value='Make Predictions') }}
+</div>
+<div class="col-auto">
+  {{ form.submit(class="btn btn-secondary", value='Save forecast') }}
+</div>
+</div>
 </form>
+</div>
+<div class='row'>
+  <div class="col-6">
+  <div id='original_plot' style='height: 30vh'></div>
+  <script>
+      var graphs = {{ graph|safe }};
+      Plotly.plot('original_plot', graphs, {});
+  </script>
+  </div>
+  <div class="col-6">
+  <div id='normalized_plot' style='height: 30vh'></div>
+  <script>
+      var graphs2 = {{ graph2|safe }};
+      Plotly.plot('normalized_plot', graphs2, {});
+  </script>
+  </div>
+</div>
+
+<div class='row'>
+  <div class="col-6">
+  <div id='loss_per_epoch' style='height: 30vh'></div>
+  <script>
+      var graphs3 = {{ graph3|safe }};
+      Plotly.plot('loss_per_epoch', graphs3, {});
+  </script>
+  </div>
+
+<div class="col-6">
+  <div id='test_pred' style='height: 30vh'></div>
+  <script>
+      var graphs4 = {{ graph4|safe }};
+      Plotly.plot('test_pred', graphs4, {});
+  </script>
+</div>
 </div>
 
 
+<div class='row'>
+<br/><br/>
+<h3 align="center">Root Mean Squared Error {{  score|FormatScore  }}</h3>
+<br/>
+</div>
+<div class='row'>
+  <div class="col">
+  <div id='act_forecast' style='height: 30vh'></div>
+  <script>
+      var graphs5 = {{ graph5|safe }};
+      Plotly.plot('act_forecast', graphs5, {});
+  </script>
+  </div>
+</div>
 {% endblock %}

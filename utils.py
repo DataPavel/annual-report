@@ -1,6 +1,7 @@
 import boto3
 from dotenv import load_dotenv
 import os
+from io import StringIO
 import pandas as pd
 
 # Config-----------------------------------------------------------------
@@ -29,7 +30,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in extentions
 
 
-columns = ['Date', 'Company', 'Studio', 'Project', 'Category', 'Country',
+columns = ['Date', 'Company', 'Studio', 'Project', 'Category1', 'Category2', 'Country',
        'Country_code', 'OS', 'Counterparty', 'Amount_USD']
 
 def read_file_s3(bucket_name):
@@ -57,3 +58,11 @@ def unique_value(column_name):
 	df = read_file_s3(bucket)
 	col_value_unique = list(df[column_name].unique())
 	return col_value_unique
+
+################# Save DataFrame to S3 ###################################
+
+def save_to_s3(df, file_name):
+	csv_buf = StringIO()
+	df.to_csv(csv_buf, header=True, index=False)
+	csv_buf.seek(0)
+	client.put_object(Bucket=bucket2, Body=csv_buf.getvalue(), Key=file_name+'.csv')

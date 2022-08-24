@@ -1,9 +1,9 @@
-from flask import Flask, render_template, flash, jsonify
+from flask import Flask, render_template, flash, jsonify, request
 from flask_wtf import FlaskForm
-from wtforms import FileField, SubmitField, DateField, SelectMultipleField
+from wtforms import FileField, SubmitField, DateField, SelectField, SelectMultipleField, IntegerField, DecimalField
 from werkzeug.utils import secure_filename
 import os
-from io import StringIO
+
 from wtforms.validators import InputRequired, DataRequired
 from babel.numbers import format_decimal
 
@@ -24,8 +24,11 @@ import dataframes
 # Decimal format for Jinja2
 def FormatDecimal(value):
     return format_decimal(float(value), format='#,##0')
+def FormatScore(value):
+    return format_decimal(float(value), format='#,##0.##')
 
 jinja2.filters.FILTERS['FormatDecimal'] = FormatDecimal
+jinja2.filters.FILTERS['FormatScore'] = FormatScore
 
 
 
@@ -127,7 +130,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_preds = dataframes.df_preds()
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'")
 
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -145,7 +148,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_preds = dataframes.df_preds(company_name=company_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -163,7 +166,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_preds = dataframes.df_preds(studio_name=studio_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -181,7 +184,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_preds = dataframes.df_preds(product_name=product_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", product_name=product_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -199,7 +202,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_preds = dataframes.df_preds(company_name=company_name, studio_name=studio_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -218,7 +221,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_preds = dataframes.df_preds(company_name=company_name, product_name=product_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, product_name=product_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -237,7 +240,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_preds = dataframes.df_preds(studio_name=studio_name, product_name=product_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name, product_name=product_name)
             
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -255,7 +258,7 @@ def profit():
             df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
             df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
             df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_preds = dataframes.df_preds(company_name=company_name, studio_name=studio_name, product_name=product_name)
+            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
 
             fig = plots.profit_by_month_bar(df)
             graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -271,7 +274,7 @@ def profit():
     df = dataframes.df_main_nf()
     df_project = dataframes.df_project_nf()
     df_table = dataframes.df_table_nf()
-    df_preds = dataframes.df_preds()
+    df_preds = dataframes.df_preds_nf()
      
     fig = plots.profit_by_month_bar(df)
     graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -908,10 +911,8 @@ def development():
 
 @app.route('/test/')
 def test():
-    return render_template('test.html')
-
-
-
+    df = dataframes.df_main_nf()
+    return render_template('test.html', df=df)
 
 
 
@@ -928,22 +929,54 @@ def test():
 
 
 class PredictionsForm(FlaskForm):
+    product_name = SelectField('Product Name', choices = [], 
+        validators=[DataRequired()], validate_choice=True)
+    window_size = IntegerField('Window Size', 
+        validators=[DataRequired()])
+    epoch = IntegerField('Epoch', validators=[DataRequired()])
+    months_pred = IntegerField('No of months to predict', validators=[DataRequired()])
+    train_test = DecimalField('Train Set portion', validators=[DataRequired()])
     submit = SubmitField('Make Predictions')
+    submit = SubmitField('Save forecast')
 
 
 @app.route('/predictions/', methods=['GET',"POST"])
 def predictions():
     form = PredictionsForm()
+    form.product_name.choices=utils.unique_value('Project')
+    
     if form.validate_on_submit():
-        ######for predictions#######
-        df_preds = preds.display_all_predictions(utils.read_file_s3(utils.bucket)).reset_index()
-        csv_buf = StringIO()
-        df_preds.to_csv(csv_buf, header=True, index=False)
-        csv_buf.seek(0)
-        utils.client.put_object(Bucket=utils.bucket2, Body=csv_buf.getvalue(), Key='preds.csv')
-        return render_template('predictions.html', form=form)
-    return render_template('predictions.html', form=form)
-
+        product_name = form.product_name.data
+        window_size = form.window_size.data
+        epoch = form.epoch.data
+        months_pred = form.months_pred.data
+        train_test = form.train_test.data
+        df = dataframes.df_model()
+        test_preds, loss_per_epoch, score, df_original, df_normalized = preds.model_creation(df=df, 
+            train_portion=train_test, window_size=window_size, 
+            epochs=epoch, product=product_name)
+        act_preds = preds.forecast(df=df, nr_months=months_pred, window_size=window_size, 
+            epochs=epoch, product=product_name)
+        fig = plots.original_plot(df_original)
+        graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        fig2 = plots.normalized_plot(df_normalized)
+        graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        fig3 = plots.loss_per_epoch_plot(loss_per_epoch)
+        graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+        fig4 = plots.test_pred(test_preds)
+        graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+        fig5 = plots.forecast_plot(act_preds)
+        graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+        if request.form['submit'] == 'Make Predictions':
+            return render_template('predictions.html', form=form, 
+                graph=graph, graph2=graph2, graph3=graph3, 
+                graph4=graph4, graph5=graph5, score=score)
+        if request.form['submit'] == 'Save forecast':
+            utils.save_to_s3(act_preds, product_name)
+            flash('File was successfully saved to S3')
+            return render_template('predictions_no_graph.html', form=form)
+        
+    return render_template('predictions_no_graph.html', form=form)
 
 
 

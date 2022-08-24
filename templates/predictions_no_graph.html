@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<h1>You can generate predictions by clicking the button</h1>
+<br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+<form method='POST'>
+  {{  form.hidden_tag() }}
+<div class="row g-3 align-items-center">
+<div class="col-auto">
+  {{ form.product_name(class="form-control", placeholder="Product") }}
+</div>
+<div class="col-auto">
+  {{ form.window_size(class="form-control", placeholder="Window Size") }}
+</div>
+<div class="col-auto">
+  {{ form.epoch(class="form-control", placeholder="Epoch") }}
+</div>
+<div class="col-auto">
+  {{ form.months_pred(class="form-control", placeholder="Months to be predicted") }}
+</div>
+<div class="col-auto">
+  {{ form.train_test(class="form-control", placeholder="Train portion") }}
+</div>
+<div class="col-auto"> 
+  {{ form.submit(class="btn btn-secondary", value='Make Predictions') }}
+</div>
+<div class="col-auto">
+  {{ form.submit(class="btn btn-secondary", value='Save forecast') }}
+</div>
+</div>
+</form>
+</div>
+{% for message in get_flashed_messages() %}
+
+<div class="alert alert-primary alert-dismissible fade show" role="alert">
+
+    {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+{% endfor %}
+
+{% endblock %}

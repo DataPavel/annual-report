@@ -76,7 +76,7 @@
 		</script>
 	</div>
 </div>
-<table class="table table-hover table-bordered table-striped">
+<table class="table table-hover table-bordered table-striped" id="tbl">
 	<thead class="table-success">
   	<tr>
 	<td align="center"><h6>Category</h6></td>
@@ -87,7 +87,7 @@
 
 {% for i, row in df.iterrows() %}
 <tr>
-    <td>{{ row.Category|safe }}</td>
+    <td>{{ row.Category2|safe }}</td>
     <td align="right">{{ row.Amount_USD|safe|FormatDecimal }}</td>
 </tr>
 {% endfor %} 

@@ -27,7 +27,7 @@ def profit_by_month_bar(df):
 	            go.Bar(
 	                x=df['Date_str'],
 	                y=df['Amount_USD'],
-	                #marker_color=df['Color'],
+	                marker_color=df['color'],
 	                text = df['Amount_USD']
 	                )
 	                    )
@@ -66,7 +66,7 @@ def cumline(df):
     fig = px.area(df, x = 'Date_str', y = 'RT',
             text = 'RT',
             markers = True,
-            color_discrete_sequence= df['color_RT'],
+            #color_discrete_sequence= df['color_RT'],
             template = 'simple_white'
                     )
     fig = fig.update_traces(
@@ -74,6 +74,8 @@ def cumline(df):
                             textposition = 'top center',
                             textfont_size = 10,
                             marker_color=df['color_RT'],
+                            fillcolor = '#F7F7F7',
+                            opacity = 0.1
                             )
     fig = fig.update_xaxes(title = None,
                             tickfont=dict(size=8), type='category')
@@ -135,14 +137,16 @@ def predictions(df):
     fig = px.area(df, x = 'Date_str', y = 'Amount_USD',
             text = 'Amount_USD',
             markers = True,
-            #color_discrete_sequence= df['color_RT'],
+            #color_discrete_sequence='#EAEAEA',
             template = 'simple_white'
                     )
     fig = fig.update_traces(
                             texttemplate='%{text:.2s}',
                             textposition = 'top center',
                             textfont_size = 10,
-                            #marker_color=df['color_RT'],
+                            marker_color=df['color'],
+                            fillcolor = '#F7F7F7',
+                            opacity = 0.1
                             )
     fig = fig.update_xaxes(title = None,
                             tickfont=dict(size=8), 
@@ -202,7 +206,7 @@ def revenue_by_month_plot(df):
 
 	fig = px.bar(df, x = 'Date_str',
     y = 'Amount_USD',
-    color = 'Category',
+    color = 'Category2',
     text = 'Amount_USD')
 
 	fig = fig.update_traces(
@@ -286,7 +290,7 @@ def revenue_by_country_plot(df):
 
 def pie_cat_rev(df):
 	fig = px.pie(df, values='Amount_USD',
-	names='Category', hole = 0.5
+	names='Category2', hole = 0.5
 	                        )
 
 	fig = fig.update_xaxes(title = None,
@@ -498,7 +502,7 @@ def dev_by_month_plot(df):
 
 	fig = px.bar(df, x = 'Date_str',
 	    y = 'amount_abs',
-	    color = 'Category',
+	    color = 'Category2',
 	    text = 'amount_abs')
 
 	fig = fig.update_traces(
@@ -586,7 +590,7 @@ def dev_by_country_plot(df):
 
 def pie_cat_dev(df):
 	fig = px.pie(df, values='amount_abs',
-	names='Category', hole = 0.5
+	names='Category2', hole = 0.5
 	                        )
 
 	fig = fig.update_xaxes(title = None,
@@ -649,3 +653,169 @@ def pie_partner_dev(df):
 	                )
 
 	return fig
+
+
+
+###########Make Predictions Page####################
+
+
+
+def original_plot(df):
+    fig = px.area(df, x = 'Date_str', y = 'Amount_USD',
+            text = 'Amount_USD',
+            markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = fig.update_traces(
+                            texttemplate='%{text:.2s}',
+                            textposition = 'top center',
+                            textfont_size = 10,
+                            marker_color=df['color'],
+                            fillcolor = '#F7F7F7',
+                            opacity = 0.1
+                            )
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            #xaxis_range= [-0.1, df['Date'].count() - 0.9],
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "Original dataset, USD",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE',
+                            #paper_bgcolor= '#ECF0F1'
+                            )
+    return fig
+
+def normalized_plot(df):
+    fig = px.line(df, x = 'Date_str', y = 'pct_change',
+            #text = 'pct_change',
+            markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = fig.update_traces(
+                            #texttemplate='%{text:.2s}',
+                            #textposition = 'top center',
+                            #textfont_size = 10,
+                            marker_color='#037A9C',
+                            #fillcolor = '#F7F7F7',
+                            #opacity = 0.1
+                            )
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            #xaxis_range= [-0.1, df['Date'].count() - 0.9],
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "Normalized dataset",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE',
+                            #paper_bgcolor= '#ECF0F1'
+                            )
+    return fig
+
+def loss_per_epoch_plot(df):
+    fig = px.line(x = range(len(df)), y = df,
+            #text = 'pct_change',
+            #markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = fig.update_traces(
+                            #texttemplate='%{text:.2s}',
+                            #textposition = 'top center',
+                            #textfont_size = 10,
+                            marker_color='#037A9C',
+                            #fillcolor = '#F7F7F7',
+                            #opacity = 0.1
+                            )
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            #xaxis_range= [-0.1, df['Date'].count() - 0.9],
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "Loss per epoch",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE',
+                            #paper_bgcolor= '#ECF0F1'
+                            )
+    return fig
+
+
+
+def test_pred(df):
+    fig = px.line(df, x = 'Date_str', y = 'pct_change',
+            #text = 'pct_change',
+            markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = go.Figure()
+    fig = fig.add_trace(go.Scatter(x=df['Date_str'], y=df['pct_change'], mode='lines+markers', name='original',
+                                  line=dict(color='#037A9C')))
+    fig = fig.add_trace(go.Scatter(x=df['Date_str'], y=df['preds'], mode='lines+markers', name='predicted',
+                                  line=dict(color='#FFC700')))
+
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            template = 'simple_white',
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "Normalized dataset",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE'
+                            )
+    return fig
+
+
+def forecast_plot(df):
+    fig = px.area(df, x = 'Date_str', y = 'Amount_USD',
+            text = 'Amount_USD',
+            markers = True,
+            #color_discrete_sequence= df['color_RT'],
+            template = 'simple_white'
+                    )
+    fig = fig.update_traces(
+                            texttemplate='%{text:.2s}',
+                            textposition = 'top center',
+                            textfont_size = 10,
+                            marker_color=df['color'],
+                            fillcolor = '#F7F7F7',
+                            opacity = 0.1
+                            )
+    fig = fig.update_xaxes(title = None,
+                            tickfont=dict(size=8), type='category')
+    fig = fig.update_yaxes(title = None,
+                            showgrid=True,
+                            tickfont=dict(size=8))
+    fig = fig.update_layout(
+                            #xaxis_range= [-0.1, df['Date'].count() - 0.9],
+                            margin=dict(l=20, r=20, t=25, b=20),
+                            title={
+                                'text': "Original dataset, USD",
+                                'x':0.5,
+                                    },
+                            plot_bgcolor='#F3FEFE',
+                            #paper_bgcolor= '#ECF0F1'
+                            )
+    return fig
