@@ -1,5 +1,4 @@
 import utils
-from pmdarima.arima import auto_arima
 import pandas as pd
 import numpy as np
 from pandas.tseries.offsets import MonthEnd
