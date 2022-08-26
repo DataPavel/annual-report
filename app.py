@@ -35,7 +35,7 @@ jinja2.filters.FILTERS['FormatScore'] = FormatScore
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'supersecretkey'
+app.config['SECRET_KEY'] = 'secretkey'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 
@@ -73,7 +73,7 @@ def upload():
                 return render_template('upload.html', form=form)
             
         else:
-            flash('Make sure you upload file in csv or xlsx format')
+            flash('Make sure you upload file in csv format')
             return render_template('upload.html', form=form)
     return render_template('upload.html', form=form)
 
@@ -931,11 +931,11 @@ def test():
 class PredictionsForm(FlaskForm):
     product_name = SelectField('Product Name', choices = [], 
         validators=[DataRequired()], validate_choice=True)
-    window_size = IntegerField('Window Size', 
+    window_size = IntegerField('Lag (Months)', 
         validators=[DataRequired()])
-    epoch = IntegerField('Epoch', validators=[DataRequired()])
+    epoch = IntegerField('Nr of Epochs', validators=[DataRequired()])
     months_pred = IntegerField('No of months to predict', validators=[DataRequired()])
-    train_test = DecimalField('Train Set portion', validators=[DataRequired()])
+    train_test = DecimalField('Training Set portion', validators=[DataRequired()])
     submit = SubmitField('Make Predictions')
     submit = SubmitField('Save forecast')
 

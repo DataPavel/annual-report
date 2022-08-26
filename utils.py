@@ -12,7 +12,7 @@ def configure():
 
 configure()
 
-extentions = ['csv', 'xlsx', 'xls']
+extentions = ['csv']
 
 
 client = boto3.client(

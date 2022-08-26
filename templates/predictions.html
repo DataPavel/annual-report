@@ -3,27 +3,36 @@
 {% block content %}
 
 
-<h1>You can generate predictions by clicking the button</h1>
+<h1 align="center">Please select parameters for LSTM Model</h1>
 <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
 <form method='POST'>
   {{  form.hidden_tag() }}
 <div class="row g-3 align-items-center">
+
 <div class="col-auto">
+  {{ form.product_name.label(class="form-label") }}
   {{ form.product_name(class="form-control", placeholder="Product") }}
 </div>
 <div class="col-auto">
-  {{ form.window_size(class="form-control", placeholder="Window Size") }}
+  {{ form.window_size.label(class="form-label") }}
+  {{ form.window_size(class="form-control", placeholder="Lag (Months)") }}
 </div>
 <div class="col-auto">
-  {{ form.epoch(class="form-control", placeholder="Epoch") }}
+  {{ form.epoch.label(class="form-label") }}
+  {{ form.epoch(class="form-control", placeholder="Nr of Epochs") }}
 </div>
 <div class="col-auto">
+  {{ form.months_pred.label(class="form-label") }}
   {{ form.months_pred(class="form-control", placeholder="Months to be predicted") }}
 </div>
 <div class="col-auto">
+  {{ form.train_test.label(class="form-label") }}
   {{ form.train_test(class="form-control", placeholder="Train portion") }}
 </div>
+</div>
+<br/>
+<div class="row g-3 align-items-center">
 <div class="col-auto"> 
   {{ form.submit(class="btn btn-secondary", value='Make Predictions') }}
 </div>
@@ -33,6 +42,12 @@
 </div>
 </form>
 </div>
+<div class='row'>
+<br/><br/>
+<h3 align="center">Root Mean Squared Error {{  score|FormatScore  }}</h3>
+<br/>
+</div>
+<br/>
 <div class='row'>
   <div class="col-6">
   <div id='original_plot' style='height: 30vh'></div>
@@ -69,11 +84,7 @@
 </div>
 
 
-<div class='row'>
-<br/><br/>
-<h3 align="center">Root Mean Squared Error {{  score|FormatScore  }}</h3>
-<br/>
-</div>
+
 <div class='row'>
   <div class="col">
   <div id='act_forecast' style='height: 30vh'></div>

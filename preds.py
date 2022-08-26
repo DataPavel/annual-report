@@ -10,44 +10,6 @@ from keras.layers import LSTM, Dense
 from keras.preprocessing.sequence import TimeseriesGenerator
 
 
-
-def list_of_dfs(df):
-    dfs = list()
-    for i in list(df['Project'].unique()):
-        dfs.append(df[df['Project']==i])
-    return dfs
-
-
-def make_arima(df, company, studio, project):
-    df['Date'] = pd.to_datetime(df['Date'])
-    df.set_index('Date', inplace=True)
-    model = auto_arima(df['Amount_USD'], m=4, seasonal=True, start_p=0, start_q=0, max_order=1,
-                  test='adf', error_action='ignore', suppress_warnings=True, stepwise=True, trace=False)
-    model.fit(df['Amount_USD'])
-    forecast = model.predict(n_periods=12, return_conf_int=True)
-    forecast_df = pd.DataFrame(forecast[0], index= df.index[-12:] + MonthEnd(12), columns=['Amount_USD'])
-    forecast_df['Company'] = company
-    forecast_df['Studio'] = studio
-    forecast_df['Project'] = project
-    forecast_df = forecast_df[['Company', 'Studio', 'Project', 'Amount_USD']]
-    df = pd.concat([df, forecast_df], axis=0)
-    return df
-
-
-
-
-
-def display_all_predictions(df):
-    by_project = df.groupby(['Date', 'Company', 'Studio', 'Project']).sum('Amount_USD').reset_index()
-    dfs = list_of_dfs(by_project)
-    dfs_with_preds = list()
-    for i in dfs:
-        df_pred = make_arima(i, list(i['Company'])[0], list(i['Studio'])[0], list(i['Project'])[0])
-        dfs_with_preds.append(df_pred)
-    df_pred = pd.concat(dfs_with_preds, axis=0)
-    return df_pred
-
-
 def model_creation(df, train_portion, window_size, epochs, product):
     df['Date'] = pd.to_datetime(df['Date'])
     df = df[df['Project']==product]
@@ -110,6 +72,7 @@ def forecast(df, nr_months, window_size, epochs, product):
     df_original = df.copy()
     df.set_index('Date', drop=True, inplace=True)
     df['pct_change'] = df.Amount_USD.pct_change()
+    df['act_pred'] = 'Actual'
     df1 = df[['pct_change']]
     df1.dropna(inplace=True)
 
@@ -157,6 +120,7 @@ def forecast(df, nr_months, window_size, epochs, product):
     preds['Amount_USD'] = np.nan
     preds['pct_change'] = true_predictions.flatten()
     preds['color'] = np.where(preds['Amount_USD']<0, '#F43B76', '#037A9C')
+    preds['act_pred'] = 'Predicted'
     act_preds = pd.concat([df, preds], axis=0)
     act_preds['Amount_USD']=amount
     act_preds = act_preds.reset_index()

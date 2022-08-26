@@ -159,7 +159,7 @@ def predictions(df):
                             #xaxis_range= [-0.1, df['Date'].count() - 0.9],
                             margin=dict(l=20, r=20, t=25, b=20),
                             title={
-                                'text': "One year prediction, USD",
+                                'text': "Profit Forecast, USD",
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
@@ -337,7 +337,7 @@ def pie_partner_rev(df):
 	                template = 'simple_white',
 	                margin=dict(l=20, r=20, t=25, b=20),
 	                title={
-	                       'text': "Revenue by Category",
+	                       'text': "Category by counterparty",
 	                       'x':0.5
 	                             },
 	                legend = dict(
@@ -684,7 +684,7 @@ def original_plot(df):
                             #xaxis_range= [-0.1, df['Date'].count() - 0.9],
                             margin=dict(l=20, r=20, t=25, b=20),
                             title={
-                                'text': "Original dataset, USD",
+                                'text': "Profit by Month, USD (Original Dataset)",
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
@@ -716,7 +716,7 @@ def normalized_plot(df):
                             #xaxis_range= [-0.1, df['Date'].count() - 0.9],
                             margin=dict(l=20, r=20, t=25, b=20),
                             title={
-                                'text': "Normalized dataset",
+                                'text': "Percentage Change by Month",
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
@@ -780,7 +780,7 @@ def test_pred(df):
                             template = 'simple_white',
                             margin=dict(l=20, r=20, t=25, b=20),
                             title={
-                                'text': "Normalized dataset",
+                                'text': "Validation on test set",
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE'
@@ -795,13 +795,14 @@ def forecast_plot(df):
             #color_discrete_sequence= df['color_RT'],
             template = 'simple_white'
                     )
+    fig = fig.add_trace(go.Scatter(x=df[df['act_pred']=='Predicted']['Date_str'], y=df[df['act_pred']=='Predicted']['Amount_USD'], mode='lines'))
     fig = fig.update_traces(
                             texttemplate='%{text:.2s}',
                             textposition = 'top center',
                             textfont_size = 10,
                             marker_color=df['color'],
                             fillcolor = '#F7F7F7',
-                            opacity = 0.1
+                            #opacity = 0.1
                             )
     fig = fig.update_xaxes(title = None,
                             tickfont=dict(size=8), type='category')
@@ -812,10 +813,11 @@ def forecast_plot(df):
                             #xaxis_range= [-0.1, df['Date'].count() - 0.9],
                             margin=dict(l=20, r=20, t=25, b=20),
                             title={
-                                'text': "Original dataset, USD",
+                                'text': "Profit by Month with Forecasted Values, USD",
                                 'x':0.5,
                                     },
                             plot_bgcolor='#F3FEFE',
+                            showlegend=False
                             #paper_bgcolor= '#ECF0F1'
                             )
     return fig
