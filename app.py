@@ -998,7 +998,9 @@ def predictions():
         
     return render_template('predictions_no_graph.html', form=form)
 
-
+@app.route('/howto/')
+def howto():
+    return render_template('howto.html')
 
 
 

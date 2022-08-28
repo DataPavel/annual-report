@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br/><br/><br/>
+<div class="row">
+	<div class="col-7">
+<h4>Follow the steps below to learn how to use this app</h4>
+	</div>
+
+</div>
+<br/><br/>
+
+<div class="row">
+	<div class="col-1">
+<h3>Step 1</h3>
+	</div>
+	<div class="col">
+<h5>By clicking on the <b>How to</b> link on the navigation bar you go to this page, where you can find instructions about how to use this application</h5>
+	</div>
+</div>
+<br/>
+<div class="row">
+	<div class="col-1">
+<h3>Step 2</h3>
+	</div>
+	<div class="col">
+<h5>By clicking on the <b>Metrics</b> dropdown on the navigation bar you will see 4 metrics: Profit, Revenue, Marketing and Development. You can choose one of the metrics by clicking the link to see interactive dashboards </h5>
+	</div>
+</div>
+<br/>
+<div class="row">
+	<div class="col-1">
+<h3>Step 3</h3>
+	</div>
+	<div class="col">
+<h5>By clicking on one of the <b>Metrics</b> from the dropdown menu you go to the profit page. Please note that the underlying data should be in the relevant S3 bucket, otherwise you will be redirected to the upload page, where you can upload data to S3</h5>
+	</div>
+</div>
+<br/>
+<div class="row">
+	<div class="col-1">
+<h3>Step 4</h3>
+	</div>
+	<div class="col">
+<h5>By clicking on the <b>Upload files</b> link on the navigation bar you go to the page where you can upload or replace existing data on S3</h5>
+	</div>
+</div>
+<br/>
+<div class="row">
+	<div class="col-1">
+<h3>Step 5</h3>
+	</div>
+	<div class="col">
+<h5>By clicking on the <b>Make Predictions</b> link on the navigation bar you can make predictions. Please insert parameters to the form and click <b>Make Predictions</b> button. Inspect the results of the predictions and if they are acceptable save them to S3 by clicking on the <b>Save forecast</b> button</h5>
+	</div>
+</div>
+{% endblock %}
