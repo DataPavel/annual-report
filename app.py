@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, jsonify, request
+from flask import Flask, render_template, flash, jsonify, request, redirect, url_for
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField, DateField, SelectField, SelectMultipleField, IntegerField, DecimalField
 from werkzeug.utils import secure_filename
@@ -20,6 +20,7 @@ import plots
 import preds
 import dataframes
 
+pd.options.mode.chained_assignment = None
 
 # Decimal format for Jinja2
 def FormatDecimal(value):
@@ -115,180 +116,187 @@ class FilterForm(FlaskForm):
 
 @app.route('/profit/', methods=['GET',"POST"])
 def profit():
-    form = FilterForm()
-    form.company_name.choices=['All'] + utils.unique_value('Company')
-    form.studio_name.choices=['All']+ utils.unique_value('Studio')
-    form.product_name.choices=['All']+ utils.unique_value('Project')
-    if form.validate_on_submit():
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        company_name = form.company_name.data
-        studio_name = form.studio_name.data
-        product_name = form.product_name.data
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+    try:
+        form = FilterForm()
+        form.company_name.choices=['All'] + utils.unique_value('Company')
+        form.studio_name.choices=['All']+ utils.unique_value('Studio')
+        form.product_name.choices=['All']+ utils.unique_value('Project')
+        if form.validate_on_submit():
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            company_name = form.company_name.data
+            studio_name = form.studio_name.data
+            product_name = form.product_name.data
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'")
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'")
 
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
-           
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
+               
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", product_name=product_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", product_name=product_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
-
-
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, product_name=product_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
 
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name, product_name=product_name)
-            
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, product_name=product_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
-            df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
-            fig = plots.profit_by_month_bar(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.cumline(df)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.bar_project(df_project)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.predictions(df_preds)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, df=df_table)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", studio_name=studio_name, product_name=product_name)
+                
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
 
-    df = dataframes.df_main_nf()
-    df_project = dataframes.df_project_nf()
-    df_table = dataframes.df_table_nf()
-    df_preds = dataframes.df_preds_nf()
-     
-    fig = plots.profit_by_month_bar(df)
-    graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
-    fig2 = plots.cumline(df)
-    graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-    fig3 = plots.bar_project(df_project)
-    graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-    fig4 = plots.predictions(df_preds)
-    graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                df = dataframes.df_main(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_project = dataframes.df_project(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_preds = dataframes.df_preds(start_date="'"+str(start_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
 
-    
-    return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-        graph4=graph4, df=df_table)
+                fig = plots.profit_by_month_bar(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.cumline(df)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.bar_project(df_project)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.predictions(df_preds)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, df=df_table)
+
+        df = dataframes.df_main_nf()
+        df_project = dataframes.df_project_nf()
+        df_table = dataframes.df_table_nf()
+        df_preds = dataframes.df_preds_nf()
+         
+        fig = plots.profit_by_month_bar(df)
+        graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+        fig2 = plots.cumline(df)
+        graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        fig3 = plots.bar_project(df_project)
+        graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+        fig4 = plots.predictions(df_preds)
+        graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+
+        
+        return render_template('profit.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+            graph4=graph4, df=df_table)
+        
+    except KeyError:
+        flash('Please upload GL to S3 and then make predictions on the Make Predictions page')
+        return redirect(url_for('upload'))
+
+
 
 
 
@@ -318,227 +326,231 @@ def profit():
 
 @app.route('/revenue/', methods=['GET',"POST"])
 def revenue():
-    form = FilterForm()
-    form.company_name.choices=['All'] + utils.unique_value('Company')
-    form.studio_name.choices=['All']+ utils.unique_value('Studio')
-    form.product_name.choices=['All']+ utils.unique_value('Project')
-    if form.validate_on_submit():
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        company_name = form.company_name.data
-        studio_name = form.studio_name.data
-        product_name = form.product_name.data
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+    try:
+        form = FilterForm()
+        form.company_name.choices=['All'] + utils.unique_value('Company')
+        form.studio_name.choices=['All']+ utils.unique_value('Studio')
+        form.product_name.choices=['All']+ utils.unique_value('Project')
+        if form.validate_on_submit():
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            company_name = form.company_name.data
+            studio_name = form.studio_name.data
+            product_name = form.product_name.data
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-
-
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
 
 
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
-           
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
 
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
-
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
 
 
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
+               
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
 
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-
-
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
 
 
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
+
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
 
 
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
 
 
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
 
 
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
 
 
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
 
 
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
 
 
-            fig = plots.revenue_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.revenue_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_rev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_rev(df_partner1)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            fig5 = plots.pie_partner_rev(df_partner2)
-            graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-                    graph4=graph4, graph5=graph5, df=df_table)
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
 
-    df = dataframes.df_revenue_month_nf()
-    df_country = dataframes.df_revenue_country_nf()
-    df_category = dataframes.df_revenue_category_nf()
-    df_partner1 = dataframes.df_revenue_partner1_nf()
-    df_partner2 = dataframes.df_revenue_partner2_nf()
-    df_table = dataframes.df_table_revenue_nf()
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
 
 
-    fig = plots.revenue_by_month_plot(df)
-    graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    fig2 = plots.revenue_by_country_plot(df_country)
-    graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-    fig3 = plots.pie_cat_rev(df_category)
-    graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-    fig4 = plots.pie_partner_rev(df_partner1)
-    graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-    fig5 = plots.pie_partner_rev(df_partner2)
-    graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
-            graph4=graph4, graph5=graph5, df=df_table)
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_revenue_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_revenue_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_category = dataframes.df_revenue_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_partner1 = dataframes.df_revenue_partner1(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_partner2 = dataframes.df_revenue_partner2(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_revenue(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
 
 
+                fig = plots.revenue_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.revenue_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_rev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_rev(df_partner1)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                fig5 = plots.pie_partner_rev(df_partner2)
+                graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                        graph4=graph4, graph5=graph5, df=df_table)
+
+
+        df = dataframes.df_revenue_month_nf()
+        df_country = dataframes.df_revenue_country_nf()
+        df_category = dataframes.df_revenue_category_nf()
+        df_partner1 = dataframes.df_revenue_partner1_nf()
+        df_partner2 = dataframes.df_revenue_partner2_nf()
+        df_table = dataframes.df_table_revenue_nf()
+
+
+        fig = plots.revenue_by_month_plot(df)
+        graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        fig2 = plots.revenue_by_country_plot(df_country)
+        graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        fig3 = plots.pie_cat_rev(df_category)
+        graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+        fig4 = plots.pie_partner_rev(df_partner1)
+        graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+        fig5 = plots.pie_partner_rev(df_partner2)
+        graph5=json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+        return render_template('revenue.html', form=form, graph=graph, graph2=graph2, graph3=graph3, 
+                graph4=graph4, graph5=graph5, df=df_table)
+
+    
+    except KeyError:
+        flash('Please upload GL to S3')
+        return redirect(url_for('upload'))
 
 
 
@@ -550,358 +562,366 @@ def revenue():
 
 @app.route('/marketing/', methods=['GET',"POST"])
 def marketing():
-    form = FilterForm()
-    form.company_name.choices=['All'] + utils.unique_value('Company')
-    form.studio_name.choices=['All']+ utils.unique_value('Studio')
-    form.product_name.choices=['All']+ utils.unique_value('Project')
-    if form.validate_on_submit():
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        company_name = form.company_name.data
-        studio_name = form.studio_name.data
-        product_name = form.product_name.data
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+    try:
+        form = FilterForm()
+        form.company_name.choices=['All'] + utils.unique_value('Company')
+        form.studio_name.choices=['All']+ utils.unique_value('Studio')
+        form.product_name.choices=['All']+ utils.unique_value('Project')
+        if form.validate_on_submit():
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            company_name = form.company_name.data
+            studio_name = form.studio_name.data
+            product_name = form.product_name.data
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-
-
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
 
 
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
-           
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+               
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
 
 
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-
-
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
 
 
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
 
 
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
 
 
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
 
 
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
 
-            fig = plots.marketing_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.marketing_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_partner_marketing(df_partner)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
 
 
-    df = dataframes.df_marketing_month_nf()
-    df_country = dataframes.df_marketing_country_nf()
-    df_partner = dataframes.df_marketing_partner_nf()
-    df_table = dataframes.df_table_marketing_nf()
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_marketing_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_marketing_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_partner = dataframes.df_marketing_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_marketing(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
 
 
-    fig = plots.marketing_by_month_plot(df)
-    graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    fig2 = plots.marketing_by_country_plot(df_country)
-    graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-    fig3 = plots.pie_partner_marketing(df_partner)
-    graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+                fig = plots.marketing_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.marketing_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_partner_marketing(df_partner)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
 
 
+        df = dataframes.df_marketing_month_nf()
+        df_country = dataframes.df_marketing_country_nf()
+        df_partner = dataframes.df_marketing_partner_nf()
+        df_table = dataframes.df_table_marketing_nf()
 
+
+        fig = plots.marketing_by_month_plot(df)
+        graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        fig2 = plots.marketing_by_country_plot(df_country)
+        graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        fig3 = plots.pie_partner_marketing(df_partner)
+        graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+        return render_template('marketing.html', form=form, graph=graph, graph2=graph2, graph3=graph3, df=df_table)
+
+
+    
+    except KeyError:
+        flash('Please upload GL to S3')
+        return redirect(url_for('upload'))
 
 
 
 @app.route('/development/', methods=['GET',"POST"])
 def development():
-    form = FilterForm()
-    form.company_name.choices=['All'] + utils.unique_value('Company')
-    form.studio_name.choices=['All']+ utils.unique_value('Studio')
-    form.product_name.choices=['All']+ utils.unique_value('Project')
-    if form.validate_on_submit():
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        company_name = form.company_name.data
-        studio_name = form.studio_name.data
-        product_name = form.product_name.data
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+    try:
+        form = FilterForm()
+        form.company_name.choices=['All'] + utils.unique_value('Company')
+        form.studio_name.choices=['All']+ utils.unique_value('Studio')
+        form.product_name.choices=['All']+ utils.unique_value('Project')
+        if form.validate_on_submit():
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            company_name = form.company_name.data
+            studio_name = form.studio_name.data
+            product_name = form.product_name.data
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
-
-
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'")
 
 
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] == 'All':
 
 
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
-           
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name)
 
 
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+               
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name)
 
 
-        if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
-
-
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
-
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
-
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
 
 
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+            if company_name[0] == 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", product_name=product_name)
 
 
-        if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] == 'All':
+
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name)
 
 
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
 
 
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+            if company_name[0] != 'All' and studio_name[0] == 'All' and product_name[0] != 'All':
 
 
-        if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
-
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, product_name=product_name)
 
 
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
 
 
-        if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+            if company_name[0] == 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
 
-            df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-            df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
-
-
-            fig = plots.dev_by_month_plot(df)
-            graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-            fig2 = plots.dev_by_country_plot(df_country)
-            graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-            fig3 = plots.pie_cat_dev(df_category)
-            graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-            fig4 = plots.pie_partner_dev(df_partner)
-            graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-            return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
-
-    df = dataframes.df_dev_month_nf()
-    df_country = dataframes.df_dev_country_nf()
-    df_category = dataframes.df_dev_category_nf()
-    df_partner = dataframes.df_dev_partner_nf()
-    df_table = dataframes.df_table_dev_nf()
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", studio_name=studio_name, product_name=product_name)
 
 
-    fig = plots.dev_by_month_plot(df)
-    graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    fig2 = plots.dev_by_country_plot(df_country)
-    graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
-    fig3 = plots.pie_cat_dev(df_category)
-    graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
-    fig4 = plots.pie_partner_dev(df_partner)
-    graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
 
 
+            if company_name[0] != 'All' and studio_name[0] != 'All' and product_name[0] != 'All':
+
+                df = dataframes.df_dev_month(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_country = dataframes.df_dev_country(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_category = dataframes.df_dev_category(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_partner = dataframes.df_dev_partner(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+                df_table = dataframes.df_table_dev(start_date="'"+str(start_date)+"'", end_date="'"+str(end_date)+"'", company_name=company_name, studio_name=studio_name, product_name=product_name)
+
+
+                fig = plots.dev_by_month_plot(df)
+                graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+                fig2 = plots.dev_by_country_plot(df_country)
+                graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+                fig3 = plots.pie_cat_dev(df_category)
+                graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+                fig4 = plots.pie_partner_dev(df_partner)
+                graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+                return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+
+        df = dataframes.df_dev_month_nf()
+        df_country = dataframes.df_dev_country_nf()
+        df_category = dataframes.df_dev_category_nf()
+        df_partner = dataframes.df_dev_partner_nf()
+        df_table = dataframes.df_table_dev_nf()
+
+
+        fig = plots.dev_by_month_plot(df)
+        graph=json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        fig2 = plots.dev_by_country_plot(df_country)
+        graph2=json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        fig3 = plots.pie_cat_dev(df_category)
+        graph3=json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+        fig4 = plots.pie_partner_dev(df_partner)
+        graph4=json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+        return render_template('development.html', form=form, graph=graph, graph2=graph2, graph3=graph3, graph4=graph4, df=df_table)
+
+    
+    except KeyError:
+        flash('Please upload GL to S3')
+        return redirect(url_for('upload'))
 
 
 
@@ -972,7 +992,7 @@ def predictions():
                 graph=graph, graph2=graph2, graph3=graph3, 
                 graph4=graph4, graph5=graph5, score=score)
         if request.form['submit'] == 'Save forecast':
-            utils.save_to_s3(act_preds, product_name)
+            utils.save_to_s3(act_preds, product_name, utils.bucket2)
             flash('File was successfully saved to S3')
             return render_template('predictions_no_graph.html', form=form)
         
